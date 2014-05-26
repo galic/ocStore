@@ -1,5 +1,5 @@
 <?php
-final class MySQLi {
+final class db_mysqli {
 	private $mysqli;
 	
 	public function __construct($hostname, $username, $password, $database) {
@@ -8,54 +8,41 @@ final class MySQLi {
 		if ($this->mysqli->connect_error) {
       		trigger_error('Error: Could not make a database link (' . $this->mysqli->connect_errno . ') ' . $this->mysqli->connect_error);
 		}
-		
+
 		$this->mysqli->query("SET NAMES 'utf8'");
 		$this->mysqli->query("SET CHARACTER SET utf8");
 		$this->mysqli->query("SET CHARACTER_SET_CONNECTION=utf8");
 		$this->mysqli->query("SET SQL_MODE = ''");
-  	}
+  }
 		
-  	public function query($sql) {
-		$result = $this->mysqli->query($sql);
+  public function query($sql) {
+		$query = $this->mysqli->query($sql);
 
-		
-
-		if ($this->mysqli->errno) {
-		//$mysqli->errno
-		}
-		
-			if (is_resource($resource)) {
-				$i = 0;
-    	
+		if (!$this->mysqli->errno){
+			if (isset($query->num_rows)) {
 				$data = array();
-		
-				while ($row = $result->fetch_object()) {
-					$data[$i] = $row;
-    	
-					$i++;
+
+				while ($row = $query->fetch_assoc()) {
+					$data[] = $row;
 				}
 
-				$result->close();
-				
-				$query = new stdClass();
-				$query->row = isset($data[0]) ? $data[0] : array();
-				$query->rows = $data;
-				$query->num_rows = $result->num_rows;
-				
+				$result = new stdClass();
+				$result->num_rows = $query->num_rows;
+				$result->row = isset($data[0]) ? $data[0] : array();
+				$result->rows = $data;
+
 				unset($data);
-				
-				
-				
-				
-				return $query;	
-    		} else {
+
+				$query->close();
+
+				return $result;
+			} else{
 				return true;
 			}
 		} else {
-			trigger_error('Error: ' . mysql_error($this->link) . '<br />Error No: ' . mysql_errno($this->link) . '<br />' . $sql);
-			exit();
-    	}
-  	}
+			throw new ErrorException('Error: ' . $this->mysqli->error . '<br />Error No: ' . $this->mysqli->errno . '<br />' . $sql);
+		}
+	}
 	
 	public function escape($value) {
 		return $this->mysqli->real_escape_string($value);
@@ -73,4 +60,3 @@ final class MySQLi {
 		$this->mysqli->close();
 	}
 }
-?>

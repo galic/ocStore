@@ -1,5 +1,5 @@
 <?php
-final class MySQL {
+final class db_mysql {
 	private $link;
 	
 	public function __construct($hostname, $username, $password, $database) {
@@ -77,4 +77,3 @@ final class MySQL {
 		}
 	}
 }
-?>
